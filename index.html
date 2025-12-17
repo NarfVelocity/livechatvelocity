@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Account Context Widget</title>
+  <title>LiveChat Account Context</title>
 
   <style>
     body {
@@ -10,16 +10,25 @@
       padding: 12px;
       font-size: 14px;
     }
+
+    h3 {
+      margin-top: 0;
+    }
+
     #status {
       margin-bottom: 10px;
       font-weight: bold;
+      color: #333;
     }
+
     pre {
       background: #f5f5f5;
-      padding: 8px;
-      max-height: 400px;
+      padding: 10px;
+      max-height: 500px;
       overflow: auto;
       white-space: pre-wrap;
+      font-size: 12px;
+      border-radius: 4px;
     }
   </style>
 </head>
@@ -27,8 +36,11 @@
 <body>
 
   <h3>LiveChat Account Context</h3>
-  <div id="status">Waiting for LiveChat…</div>
-  <pre id="output"></pre>
+  <div id="status">Loading SDK…</div>
+  <pre id="output">(no data yet)</pre>
+
+  <!-- LiveChat Agent App SDK -->
+  <script src="https://unpkg.com/@livechat/agent-app-sdk@latest"></script>
 
   <script>
     const statusEl = document.getElementById("status");
@@ -36,45 +48,45 @@
 
     function log(label, value) {
       console.log(`[LiveChat Widget] ${label}`, value);
-      outputEl.textContent +=
-        `${label}:\n${JSON.stringify(value, null, 2)}\n\n`;
+      outputEl.textContent =
+        `${label}:\n${JSON.stringify(value, null, 2)}\n\n` +
+        outputEl.textContent;
     }
 
-    window.addEventListener("message", (event) => {
-      // Accept messages ONLY from LiveChat
-      if (!event.origin.includes("livechatinc.com")) return;
+    // Safety check
+    if (!window.LiveChatAgentApp) {
+      statusEl.textContent = "❌ LiveChat SDK not available";
+      throw new Error("LiveChatAgentApp not found");
+    }
 
-      const data = event.data;
-      log("Received message", data);
+    statusEl.textContent = "SDK loaded — initializing widget…";
 
-      // 1️⃣ Handshake → subscribe to data
-      if (data?.type === "handshake") {
-        statusEl.textContent = "Handshake received — subscribing to data";
-        
-        event.source.postMessage(
-          {
-            "@@livechat/postmessenger": true,
-            type: "subscribe",
-            subscriptions: ["chat", "customer_profile"]
-          },
-          event.origin
-        );    
-      }
+    // Create Details widget
+    LiveChatAgentApp.createDetailsWidget()
+      .then(widget => {
+        statusEl.textContent = "Widget initialized — waiting for data…";
 
-      // 2️⃣ Customer profile updates
-      if (data?.type === "customer_profile") {
-        statusEl.textContent = "Customer profile received ✅";
-        log("Customer profile", data.data);
-      }
+        // Customer profile (email, name, etc.)
+        widget.on("customer", customer => {
+          statusEl.textContent = "Customer profile received ✅";
+          log("Customer", customer);
+        });
 
-      // 3️⃣ Chat context updates (pre-chat form, etc.)
-      if (data?.type === "chat") {
-        statusEl.textContent = "Chat context received ✅";
-        log("Chat context", data.data);
-      }
-    });
+        // Chat context (pre-chat form, tags, etc.)
+        widget.on("chat", chat => {
+          statusEl.textContent = "Chat context received ✅";
+          log("Chat", chat);
+        });
 
-    statusEl.textContent = "Listening for LiveChat messages…";
+        // Fallback: any raw events
+        widget.on("*", (event, payload) => {
+          log(`Event: ${event}`, payload);
+        });
+      })
+      .catch(err => {
+        statusEl.textContent = "❌ Failed to initialize widget";
+        console.error(err);
+      });
   </script>
 
 </body>
