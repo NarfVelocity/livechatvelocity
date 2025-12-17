@@ -11,14 +11,9 @@
       font-size: 14px;
     }
 
-    h3 {
-      margin-top: 0;
-    }
-
     #status {
       margin-bottom: 10px;
       font-weight: bold;
-      color: #333;
     }
 
     pre {
@@ -39,10 +34,10 @@
   <div id="status">Loading SDK…</div>
   <pre id="output">(no data yet)</pre>
 
-  <!-- LiveChat Agent App SDK -->
-  <script src="https://unpkg.com/@livechat/agent-app-sdk@latest"></script>
+  <!-- IMPORTANT: module script -->
+  <script type="module">
+    import { createDetailsWidget } from "https://unpkg.com/@livechat/agent-app-sdk@latest/dist/index.esm.js";
 
-  <script>
     const statusEl = document.getElementById("status");
     const outputEl = document.getElementById("output");
 
@@ -53,32 +48,23 @@
         outputEl.textContent;
     }
 
-    // Safety check
-    if (!window.LiveChatAgentApp) {
-      statusEl.textContent = "❌ LiveChat SDK not available";
-      throw new Error("LiveChatAgentApp not found");
-    }
-
     statusEl.textContent = "SDK loaded — initializing widget…";
 
-    // Create Details widget
-    LiveChatAgentApp.createDetailsWidget()
+    createDetailsWidget()
       .then(widget => {
         statusEl.textContent = "Widget initialized — waiting for data…";
 
-        // Customer profile (email, name, etc.)
         widget.on("customer", customer => {
           statusEl.textContent = "Customer profile received ✅";
           log("Customer", customer);
         });
 
-        // Chat context (pre-chat form, tags, etc.)
         widget.on("chat", chat => {
           statusEl.textContent = "Chat context received ✅";
           log("Chat", chat);
         });
 
-        // Fallback: any raw events
+        // Debug: log everything
         widget.on("*", (event, payload) => {
           log(`Event: ${event}`, payload);
         });
