@@ -5,9 +5,8 @@
   <title>Account Context Widget</title>
   <style>
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: system-ui, sans-serif;
       font-size: 13px;
-      margin: 0;
       padding: 10px;
     }
     #status {
@@ -16,24 +15,42 @@
   </style>
 </head>
 <body>
-  <div id="status">Initializing…</div>
+  <div id="status">Initializing SDK…</div>
 
-  <script>
+  <script type="module">
+    import { createDetailsWidget } from "https://cdn.skypack.dev/@livechat/agent-app-sdk";
+
     const statusEl = document.getElementById("status");
 
     function log(label, value) {
-      console.log(`[LiveChat Widget] ${label}`, value);
+      console.log(`[LiveChat SDK] ${label}`, value);
     }
 
-    window.addEventListener("message", (event) => {
-      log("postMessage event", event);
-      log("event.data", event.data);
-      log("event.origin", event.origin);
+    try {
+      const widget = await createDetailsWidget();
+      log("widget", widget);
 
-      statusEl.innerText = "postMessage received — check console";
-    });
+      statusEl.innerText = "SDK ready — fetching context…";
 
-    statusEl.innerText = "Waiting for LiveChat context…";
+      if (typeof widget.getContext === "function") {
+        const ctx = await widget.getContext();
+        log("getContext()", ctx);
+        statusEl.innerText = "Context received — check console";
+      } else {
+        log("No getContext() method found", widget);
+        statusEl.innerText = "SDK loaded — no getContext()";
+      }
+
+      if (typeof widget.onContextUpdate === "function") {
+        widget.onContextUpdate((ctx) => {
+          log("onContextUpdate()", ctx);
+        });
+      }
+
+    } catch (err) {
+      console.error(err);
+      statusEl.innerText = "SDK error — check console";
+    }
   </script>
 </body>
 </html>
