@@ -1,56 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
   <title>Account Context Widget</title>
   <style>
     body {
-      font-family: system-ui, sans-serif;
-      font-size: 13px;
-      padding: 10px;
+      font-family: sans-serif;
+      padding: 12px;
     }
-    #status {
-      font-weight: 600;
+    pre {
+      background: #f5f5f5;
+      padding: 8px;
+      overflow: auto;
     }
   </style>
 </head>
 <body>
-  <div id="status">Initializing SDK…</div>
 
-  <script type="module">
-    import { createDetailsWidget } from "https://cdn.skypack.dev/@livechat/agent-app-sdk";
+<h3>LiveChat Account Context</h3>
+<div id="status">Waiting for LiveChat…</div>
+<pre id="output"></pre>
 
-    const statusEl = document.getElementById("status");
+<script>
+  const statusEl = document.getElementById("status");
+  const outputEl = document.getElementById("output");
 
-    function log(label, value) {
-      console.log(`[LiveChat SDK] ${label}`, value);
+  function log(label, value) {
+    console.log(`[LiveChat Widget] ${label}`, value);
+    outputEl.textContent += `${label}:\n${JSON.stringify(value, null, 2)}\n\n`;
+  }
+
+  window.addEventListener("message", (event) => {
+    // Security check
+    if (!event.origin.includes("livechatinc.com")) return;
+
+    const data = event.data;
+    log("Received message", data);
+
+    // Detect handshake
+    if (data?.type === "handshake") {
+      statusEl.textContent = "Handshake received — requesting context";
+
+      // 🔑 THIS IS THE IMPORTANT PART
+      event.source.postMessage(
+        {
+          "@@livechat/postmessenger": true,
+          type: "get_context"
+        },
+        event.origin
+      );
     }
 
-    try {
-      const widget = await createDetailsWidget();
-      log("widget", widget);
-
-      statusEl.innerText = "SDK ready — fetching context…";
-
-      if (typeof widget.getContext === "function") {
-        const ctx = await widget.getContext();
-        log("getContext()", ctx);
-        statusEl.innerText = "Context received — check console";
-      } else {
-        log("No getContext() method found", widget);
-        statusEl.innerText = "SDK loaded — no getContext()";
-      }
-
-      if (typeof widget.onContextUpdate === "function") {
-        widget.onContextUpdate((ctx) => {
-          log("onContextUpdate()", ctx);
-        });
-      }
-
-    } catch (err) {
-      console.error(err);
-      statusEl.innerText = "SDK error — check console";
+    // Context updates will arrive here
+    if (data?.type === "context") {
+      statusEl.textContent = "Context received ✅";
+      log("Context", data);
     }
-  </script>
+  });
+
+  statusEl.textContent = "Listening for LiveChat messages…";
+</script>
+
 </body>
 </html>
