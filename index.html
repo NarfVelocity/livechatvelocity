@@ -6,54 +6,34 @@
   <style>
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      padding: 12px;
+      font-size: 13px;
       margin: 0;
-      font-size: 14px;
+      padding: 10px;
     }
-    pre {
-      background: #f6f8fa;
-      padding: 8px;
-      overflow-x: auto;
-      font-size: 11px;
+    #status {
+      font-weight: 600;
     }
   </style>
 </head>
 <body>
-  <strong>Account Context Widget</strong>
-  <div id="status">Loading context…</div>
+  <div id="status">Initializing…</div>
 
   <script>
+    const statusEl = document.getElementById("status");
+
     function log(label, value) {
-      console.log(`[Widget] ${label}:`, value);
+      console.log(`[LiveChat Widget] ${label}`, value);
     }
 
-    log("window keys", Object.keys(window));
-    log("document.location", document.location);
-    log("document.referrer", document.referrer);
-
-    // Listen for any messages from LiveChat
     window.addEventListener("message", (event) => {
       log("postMessage event", event);
-      document.getElementById("status").innerText =
-        "Received postMessage from LiveChat (check console)";
+      log("event.data", event.data);
+      log("event.origin", event.origin);
+
+      statusEl.innerText = "postMessage received — check console";
     });
 
-    // Dump obvious globals (defensive)
-    [
-      "LiveChat",
-      "livechat",
-      "LC_API",
-      "__LC",
-      "Text",
-      "text"
-    ].forEach((key) => {
-      if (window[key]) {
-        log(`window.${key}`, window[key]);
-      }
-    });
-
-    document.getElementById("status").innerText =
-      "Widget loaded — open DevTools console";
+    statusEl.innerText = "Waiting for LiveChat context…";
   </script>
 </body>
 </html>
