@@ -3,63 +3,82 @@
 <head>
   <meta charset="utf-8" />
   <title>Account Context Widget</title>
+
   <style>
     body {
-      font-family: sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       padding: 12px;
+      font-size: 14px;
+    }
+    #status {
+      margin-bottom: 10px;
+      font-weight: bold;
     }
     pre {
       background: #f5f5f5;
       padding: 8px;
+      max-height: 400px;
       overflow: auto;
+      white-space: pre-wrap;
     }
   </style>
 </head>
+
 <body>
 
-<h3>LiveChat Account Context</h3>
-<div id="status">Waiting for LiveChat…</div>
-<pre id="output"></pre>
+  <h3>LiveChat Account Context</h3>
+  <div id="status">Waiting for LiveChat…</div>
+  <pre id="output"></pre>
 
-<script>
-  const statusEl = document.getElementById("status");
-  const outputEl = document.getElementById("output");
+  <script>
+    const statusEl = document.getElementById("status");
+    const outputEl = document.getElementById("output");
 
-  function log(label, value) {
-    console.log(`[LiveChat Widget] ${label}`, value);
-    outputEl.textContent += `${label}:\n${JSON.stringify(value, null, 2)}\n\n`;
-  }
-
-  window.addEventListener("message", (event) => {
-    // Security check
-    if (!event.origin.includes("livechatinc.com")) return;
-
-    const data = event.data;
-    log("Received message", data);
-
-    // Detect handshake
-    if (data?.type === "handshake") {
-      statusEl.textContent = "Handshake received — requesting context";
-
-      // 🔑 THIS IS THE IMPORTANT PART
-      event.source.postMessage(
-        {
-          "@@livechat/postmessenger": true,
-          type: "get_context"
-        },
-        event.origin
-      );
+    function log(label, value) {
+      console.log(`[LiveChat Widget] ${label}`, value);
+      outputEl.textContent +=
+        `${label}:\n${JSON.stringify(value, null, 2)}\n\n`;
     }
 
-    // Context updates will arrive here
-    if (data?.type === "context") {
-      statusEl.textContent = "Context received ✅";
-      log("Context", data);
-    }
-  });
+    window.addEventListener("message", (event) => {
+      // Accept messages ONLY from LiveChat
+      if (!event.origin.includes("livechatinc.com")) return;
 
-  statusEl.textContent = "Listening for LiveChat messages…";
-</script>
+      const data = event.data;
+      log("Received message", data);
+
+      // 1️⃣ Handshake → subscribe to data
+      if (data?.type === "handshake") {
+        statusEl.textContent = "Handshake received — subscribing to data";
+
+        event.source.postMessage(
+          {
+            "@@livechat/postmessenger": true,
+            type: "subscribe",
+            subscriptions: [
+              "customer_profile",
+              "chat"
+            ]
+          },
+          event.origin
+        );
+      }
+
+      // 2️⃣ Customer profile updates
+      if (data?.type === "customer_profile") {
+        statusEl.textContent = "Customer profile received ✅";
+        log("Customer profile", data.data);
+      }
+
+      // 3️⃣ Chat context updates (pre-chat form, etc.)
+      if (data?.type === "chat") {
+        statusEl.textContent = "Chat context received ✅";
+        log("Chat context", data.data);
+      }
+    });
+
+    statusEl.textContent = "Listening for LiveChat messages…";
+  </script>
 
 </body>
 </html>
