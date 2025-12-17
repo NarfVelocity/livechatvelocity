@@ -10,10 +10,50 @@
       margin: 0;
       font-size: 14px;
     }
+    pre {
+      background: #f6f8fa;
+      padding: 8px;
+      overflow-x: auto;
+      font-size: 11px;
+    }
   </style>
 </head>
 <body>
-  <strong>Customer</strong>
+  <strong>Account Context Widget</strong>
+  <div id="status">Loading context…</div>
+
+  <script>
+    function log(label, value) {
+      console.log(`[Widget] ${label}:`, value);
+    }
+
+    log("window keys", Object.keys(window));
+    log("document.location", document.location);
+    log("document.referrer", document.referrer);
+
+    // Listen for any messages from LiveChat
+    window.addEventListener("message", (event) => {
+      log("postMessage event", event);
+      document.getElementById("status").innerText =
+        "Received postMessage from LiveChat (check console)";
+    });
+
+    // Dump obvious globals (defensive)
+    [
+      "LiveChat",
+      "livechat",
+      "LC_API",
+      "__LC",
+      "Text",
+      "text"
+    ].forEach((key) => {
+      if (window[key]) {
+        log(`window.${key}`, window[key]);
+      }
+    });
+
+    document.getElementById("status").innerText =
+      "Widget loaded — open DevTools console";
+  </script>
 </body>
 </html>
-
