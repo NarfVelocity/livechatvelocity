@@ -50,18 +50,15 @@
       // 1️⃣ Handshake → subscribe to data
       if (data?.type === "handshake") {
         statusEl.textContent = "Handshake received — subscribing to data";
-
+        
         event.source.postMessage(
           {
             "@@livechat/postmessenger": true,
             type: "subscribe",
-            subscriptions: [
-              "customer_profile",
-              "chat"
-            ]
+            subscriptions: ["chat", "customer_profile"]
           },
           event.origin
-        );
+        );    
       }
 
       // 2️⃣ Customer profile updates
