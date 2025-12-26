@@ -1,22 +1,19 @@
-import * as LiveChat from "@livechat/agent-app-sdk";
+const app = document.getElementById("app");
 
-const output = document.getElementById("output");
-
-function render(data) {
-  output.textContent = JSON.stringify(data, null, 2);
+if (!window.LiveChat) {
+  app.textContent = "❌ LiveChat SDK not loaded";
+  throw new Error("LiveChat SDK missing");
 }
 
-// Create the app
-LiveChat.createApp().then(app => {
-  // Get current chat
-  app.get("chat").then(chat => {
-    render(chat);
+app.textContent = "✅ LiveChat SDK loaded";
+
+// Minimal safe call
+window.LiveChat.createDetailsWidget()
+  .then(widget => {
+    console.log("Widget ready", widget);
+    app.textContent = "🎉 Agent App Widget loaded";
+  })
+  .catch(err => {
+    console.error(err);
+    app.textContent = "❌ Widget init failed";
   });
-
-  // Listen for chat changes
-  app.on("chat", chat => {
-    render(chat);
-  });
-});
-
-
