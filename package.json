@@ -5,7 +5,7 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@textplatform/agent-app-sdk": "^1.0.0"
+    "agent-app-sdk": "git+https://github.com/livechat/agent-app-sdk.git"
   },
   "devDependencies": {
     "vite": "^5.0.0"
