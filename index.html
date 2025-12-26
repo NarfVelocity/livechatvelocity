@@ -28,21 +28,36 @@
 
     <pre id="output">Waiting for messages…</pre>
 
-    <script>
-      const output = document.getElementById("output");
+<script>
+  const output = document.getElementById("output");
 
-      window.addEventListener("message", (event) => {
-        // Safety: only accept messages that look like LiveChat payloads
-        if (!event || !event.data) return;
+  function log(data) {
+    output.textContent = JSON.stringify(data, null, 2);
+  }
 
-        try {
-          const data = event.data;
+  window.addEventListener("message", (event) => {
+    if (!event.data || !event.data["@@livechat/postmessenger"]) return;
 
-          output.textContent = JSON.stringify(data, null, 2);
-        } catch (err) {
-          output.textContent = "Error parsing message";
-        }
-      });
-    </script>
+    const { type } = event.data;
+
+    log(event.data);
+
+    // Step 1: handshake received → request context
+    if (type === "handshake") {
+      event.source.postMessage(
+        {
+          "@@livechat/postmessenger": true,
+          type: "request_context",
+          data: {
+            chat: true,
+            visitor: true,
+            agent: true
+          }
+        },
+        "*"
+      );
+    }
+  });
+</script>
   </body>
 </html>
