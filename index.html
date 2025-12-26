@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="utf-8" />
   <title>LiveChat Account Context</title>
@@ -9,13 +9,9 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       padding: 12px;
       font-size: 14px;
-      background: #fff;
-    }
-    h3 {
-      margin-top: 0;
     }
     #status {
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       font-weight: bold;
     }
     pre {
@@ -24,85 +20,66 @@
       max-height: 400px;
       overflow: auto;
       white-space: pre-wrap;
-      border-radius: 4px;
     }
   </style>
 </head>
 
 <body>
 
-  <h3>LiveChat Account Context</h3>
-  <div id="status">Waiting for LiveChat…</div>
-  <pre id="output">(no data yet)</pre>
+<h3>LiveChat Account Context</h3>
+<div id="status">Initializing…</div>
+<pre id="output">(waiting for data)</pre>
 
-  <script>
-    const statusEl = document.getElementById("status");
-    const outputEl = document.getElementById("output");
+<script>
+  const statusEl = document.getElementById("status");
+  const outputEl = document.getElementById("output");
 
-    let initialized = false;
+  let initialized = false;
 
-    function log(label, value) {
-      console.log(`[LiveChat Widget] ${label}`, value);
-      outputEl.textContent =
-        `${label}:\n${JSON.stringify(value, null, 2)}`;
+  function log(label, value) {
+    console.log("[LiveChat Widget]", label, value);
+    outputEl.textContent =
+      label + ":\n" + JSON.stringify(value, null, 2);
+  }
+
+  window.addEventListener("message", (event) => {
+    if (!event.origin.includes("livechatinc.com")) return;
+
+    const msg = event.data;
+
+    // 1️⃣ Handshake arrives repeatedly — we only react ONCE
+    if (msg?.type === "handshake" && !initialized) {
+      initialized = true;
+      statusEl.textContent = "Connected — requesting chat context";
+
+      event.source.postMessage(
+        {
+          "@@livechat/postmessenger": true,
+          type: "get_chat"
+        },
+        event.origin
+      );
+
+      return;
     }
 
-    window.addEventListener("message", (event) => {
-      // Only accept messages from LiveChat Agent App
-      if (!event.origin.includes("livechatinc.com")) return;
+    // 2️⃣ Chat data response
+    if (msg?.type === "chat") {
+      statusEl.textContent = "Chat context received ✅";
+      log("Chat", msg.data);
+      return;
+    }
 
-      const data = event.data;
+    // 3️⃣ Customer profile response
+    if (msg?.type === "customer_profile") {
+      statusEl.textContent = "Customer profile received ✅";
+      log("Customer profile", msg.data);
+      return;
+    }
+  });
 
-      // Ignore unrelated messages
-      if (!data || data["@@livechat/postmessenger"] !== true) return;
-
-      console.log("[LiveChat Widget] received", data);
-
-      // 1️⃣ Handshake
-      if (data.type === "handshake" && !initialized) {
-        initialized = true;
-
-        statusEl.textContent = "Connected to LiveChat ✅";
-
-        // 🔑 REQUIRED: tell LiveChat we are ready
-        event.source.postMessage(
-          {
-            "@@livechat/postmessenger": true,
-            type: "ready"
-          },
-          event.origin
-        );
-
-        // 🔔 Subscribe to data streams
-        event.source.postMessage(
-          {
-            "@@livechat/postmessenger": true,
-            type: "subscribe",
-            subscriptions: ["chat", "customer_profile"]
-          },
-          event.origin
-        );
-
-        return;
-      }
-
-      // 2️⃣ Chat data (pre-chat form, tags, etc.)
-      if (data.type === "chat") {
-        statusEl.textContent = "Chat context received";
-        log("Chat", data.data);
-        return;
-      }
-
-      // 3️⃣ Customer profile (email, name, location)
-      if (data.type === "customer_profile") {
-        statusEl.textContent = "Customer profile received";
-        log("Customer profile", data.data);
-        return;
-      }
-    });
-
-    statusEl.textContent = "Listening for LiveChat messages…";
-  </script>
+  statusEl.textContent = "Waiting for LiveChat…";
+</script>
 
 </body>
 </html>
