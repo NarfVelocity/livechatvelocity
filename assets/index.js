@@ -1,24 +1,35 @@
-const app = document.getElementById("app");
+function boot() {
+  const app = document.getElementById("app");
+  if (!app) {
+    console.error("Missing #app root");
+    return;
+  }
 
-window.LiveChat.createDetailsWidget()
-  .then(widget => {
-    app.innerHTML = `
-      <pre id="out">Listening…</pre>
-    `;
+  // 👇 VERY IMPORTANT: tell LiveChat we are alive immediately
+  app.textContent = "Initializing…";
 
-    const out = document.getElementById("out");
+  window.LiveChat.createDetailsWidget()
+    .then(widget => {
+      app.innerHTML = `<pre id="out">Listening…</pre>`;
+      const out = document.getElementById("out");
 
-    // ✅ Correct event source
-    widget.on("chat", chat => {
-      out.textContent = JSON.stringify(chat, null, 2);
+      widget.get("chat").then(chat => {
+        out.textContent = JSON.stringify(chat, null, 2);
+      });
+
+      widget.on("chat", chat => {
+        out.textContent = JSON.stringify(chat, null, 2);
+      });
+    })
+    .catch(err => {
+      console.error("Widget init failed", err);
+      app.textContent = "Init failed";
     });
+}
 
-    // ✅ Initial fetch
-    widget.get("chat").then(chat => {
-      out.textContent = JSON.stringify(chat, null, 2);
-    });
-  })
-  .catch(err => {
-    console.error(err);
-    app.textContent = "Init failed";
-  });
+// ✅ Ensure DOM is ready before handshake
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", boot);
+} else {
+  boot();
+}
