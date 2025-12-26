@@ -28,24 +28,48 @@
 
     <pre id="output">Waiting for messages…</pre>
 
-<script src="https://unpkg.com/@livechat/agent-app-sdk/dist/agent-app-sdk.min.js"></script>
-
 <script>
   const output = document.getElementById("output");
 
-  // Initialize the Agent App
-  const app = window.AgentAppSDK.createApp();
+  function log(msg) {
+    output.textContent = JSON.stringify(msg, null, 2);
+  }
 
-  // Immediately get current chat (if any)
-  app.get("chat").then(chat => {
-    output.textContent = JSON.stringify(chat, null, 2);
-  });
+  function initWhenReady() {
+    if (!window.LiveChatApp) {
+      return false;
+    }
 
-  // Listen for chat changes
-  app.on("chat", chat => {
-    output.textContent = JSON.stringify(chat, null, 2);
-  });
+    // LiveChatApp is now available
+    log("LiveChatApp detected");
+
+    // Get current chat
+    window.LiveChatApp.get("chat")
+      .then(chat => {
+        log(chat);
+      })
+      .catch(err => {
+        log({ error: err.message });
+      });
+
+    // Listen for chat changes
+    window.LiveChatApp.on("chat", chat => {
+      log(chat);
+    });
+
+    return true;
+  }
+
+  // Poll until LiveChatApp exists
+  const poll = setInterval(() => {
+    console.log("LiveChatApp =", window.LiveChatApp);
+
+    if (initWhenReady()) {
+      clearInterval(poll); // stop polling once initialized
+    }
+  }, 500);
 </script>
+
 
 
 
