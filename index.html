@@ -33,9 +33,10 @@
 <script>
   const output = document.getElementById("output");
 
-  const app = new LiveChatApp();
+  // Initialize the Agent App
+  const app = window.AgentAppSDK.createApp();
 
-  // Immediately fetch current chat (if any)
+  // Immediately get current chat (if any)
   app.get("chat").then(chat => {
     output.textContent = JSON.stringify(chat, null, 2);
   });
@@ -45,6 +46,7 @@
     output.textContent = JSON.stringify(chat, null, 2);
   });
 </script>
+
 
 
     
