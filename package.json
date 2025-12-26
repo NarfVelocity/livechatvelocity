@@ -1,0 +1,15 @@
+{
+  "name": "livechatvelocity",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Minimal LiveChat Agent App widget (bundled via GitHub Actions)",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "dependencies": {
+    "@livechat/agent-app-sdk": "^3.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.5"
+  }
+}
