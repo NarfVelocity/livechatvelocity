@@ -1,4 +1,4 @@
-import { createApp } from "@textplatform/agent-app-sdk";
+import { createApp } from "agent-app-sdk";
 
 const output = document.getElementById("output");
 
@@ -8,12 +8,11 @@ function render(data) {
 
 const app = createApp();
 
-// get current chat
 app.get("chat").then(chat => {
   render(chat);
 });
 
-// listen for chat changes
 app.on("chat", chat => {
   render(chat);
 });
+
