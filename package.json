@@ -1,0 +1,13 @@
+{
+  "name": "livechat-agent-app",
+  "private": true,
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@livechat/agent-app-sdk": "^3.2.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}
