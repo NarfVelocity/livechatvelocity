@@ -1,31 +1,28 @@
-function boot() {
+import { createDetailsWidget } from "https://unpkg.com/@livechat/agent-app-sdk@latest/dist/agentapp.esm.js";
+
+async function boot() {
   const root = document.getElementById("app");
 
-  if (!window.LiveChat?.agentApp) {
-    root.textContent = "Agent App runtime not available";
-    return;
-  }
+  try {
+    const widget = await createDetailsWidget();
 
-  window.LiveChat.agentApp.init({
-    onReady({ context }) {
-      root.innerHTML = `
-        <h3>Account Context</h3>
-        <pre id="out">${JSON.stringify(context, null, 2)}</pre>
-      `;
-    },
+    root.innerHTML = `<pre id="out">Waiting for customer…</pre>`;
+    const out = document.getElementById("out");
 
-    onContextUpdate(context) {
-      document.getElementById("out").textContent =
-        JSON.stringify(context, null, 2);
-    },
+    // Fired when agent opens a chat
+    widget.on("customer_profile", profile => {
+      out.textContent = JSON.stringify(profile, null, 2);
+    });
 
-    onError(error) {
-      console.error("Agent App error", error);
-      root.textContent = "Agent App error";
+    // Initial state (if already open)
+    const initialProfile = widget.getCustomerProfile();
+    if (initialProfile) {
+      out.textContent = JSON.stringify(initialProfile, null, 2);
     }
-  });
+  } catch (err) {
+    console.error(err);
+    root.textContent = "Widget init failed";
+  }
 }
 
-document.readyState === "loading"
-  ? document.addEventListener("DOMContentLoaded", boot)
-  : boot();
+boot();
