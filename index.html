@@ -1,14 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
     <meta charset="UTF-8" />
-    <title>LiveChat Agent App</title>
+    <title>Agent App Widget</title>
   </head>
   <body>
-    <h3>LiveChat Agent App</h3>
-    <pre id="output">Loading…</pre>
+    <div id="app">Loading…</div>
 
-    <!-- THIS is correct for Vite -->
-    <script type="module" src="./src/main.js"></script>
+    <!-- ✅ LiveChat Agent App SDK (UMD) -->
+    <script src="https://unpkg.com/@livechat/agent-app-sdk@1.6.3/dist/agentapp.umd.min.js"></script>
+
+    <!-- Your app -->
+    <script type="module" src="/assets/index.js"></script>
   </body>
 </html>
