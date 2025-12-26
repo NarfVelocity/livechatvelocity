@@ -1,41 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>LiveChat Account Context</title>
+
+  <!-- Agent App SDK (CDN, no npm) -->
+  <script src="https://unpkg.com/@livechat/agent-app-sdk/dist/index.umd.js"></script>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      padding: 12px;
+      font-size: 14px;
+    }
+    #status {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    pre {
+      background: #f5f5f5;
+      padding: 8px;
+      max-height: 400px;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+
+<body>
+
+<h3>LiveChat Account Context</h3>
+<div id="status">Loading…</div>
+<pre id="output">(no data yet)</pre>
+
 <script>
-  const statusEl = document.getElementById("status");
-  const outputEl = document.getElementById("output");
+  document.addEventListener("DOMContentLoaded", () => {
+    const statusEl = document.getElementById("status");
+    const outputEl = document.getElementById("output");
 
-  if (!window.LiveChatAgentSDK) {
-    statusEl.textContent = "❌ LiveChat SDK not available";
-    throw new Error("Agent SDK not loaded");
-  }
+    if (!statusEl || !outputEl) {
+      console.error("Required DOM elements not found");
+      return;
+    }
 
-  const { createDetailsWidget } = window.LiveChatAgentSDK;
+    if (!window.LiveChatAgentSDK) {
+      statusEl.textContent = "❌ LiveChat SDK not available";
+      console.error("LiveChatAgentSDK not found");
+      return;
+    }
 
-  createDetailsWidget().then(widget => {
-    statusEl.textContent = "Connected to LiveChat ✅";
+    const { createDetailsWidget } = window.LiveChatAgentSDK;
 
-    // ---- 1️⃣ Pull INITIAL chat state ----
-    widget.get("chat").then(chat => {
-      if (chat) {
+    createDetailsWidget().then(widget => {
+      statusEl.textContent = "Connected to LiveChat ✅";
+
+      widget.on("chat", chat => {
+        statusEl.textContent = "Chat data received ✅";
         outputEl.textContent =
-          "CHAT (initial):\n" + JSON.stringify(chat, null, 2);
-      }
-    });
+          "CHAT:\n" + JSON.stringify(chat, null, 2);
+      });
 
-    widget.get("customer_profile").then(profile => {
-      if (profile) {
+      widget.on("customer_profile", profile => {
+        statusEl.textContent = "Customer profile received ✅";
         outputEl.textContent =
-          "CUSTOMER PROFILE (initial):\n" + JSON.stringify(profile, null, 2);
-      }
-    });
-
-    // ---- 2️⃣ Listen for UPDATES ----
-    widget.on("chat", chat => {
-      outputEl.textContent =
-        "CHAT (update):\n" + JSON.stringify(chat, null, 2);
-    });
-
-    widget.on("customer_profile", profile => {
-      outputEl.textContent =
-        "CUSTOMER PROFILE (update):\n" + JSON.stringify(profile, null, 2);
+          "CUSTOMER PROFILE:\n" + JSON.stringify(profile, null, 2);
+      });
+    }).catch(err => {
+      statusEl.textContent = "❌ Failed to initialize widget";
+      console.error(err);
     });
   });
 </script>
+
+</body>
+</html>
