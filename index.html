@@ -2,15 +2,44 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>LiveChat Agent App</title>
-
-    <!-- UMD SDK -->
-    <script src="https://unpkg.com/@livechat/agent-app-sdk@1.6.3/dist/agentapp.umd.min.js"></script>
+    <title>LiveChat Context Probe</title>
+    <style>
+      body {
+        font-family: monospace;
+        white-space: pre-wrap;
+        margin: 0;
+        padding: 12px;
+      }
+    </style>
   </head>
   <body>
-    <div id="app">Booting…</div>
+    <pre id="out">Loading…</pre>
 
-    <!-- YOUR SCRIPT -->
-    <script src="./assets/index.js"></script>
+    <script>
+      const out = document.getElementById("out");
+
+      // 1️⃣ Read URL params
+      const params = new URLSearchParams(window.location.search);
+      const data = {
+        location: window.location.href,
+        params: Object.fromEntries(params),
+      };
+
+      out.textContent = JSON.stringify(data, null, 2);
+
+      // 2️⃣ Listen for postMessage
+      window.addEventListener("message", event => {
+        out.textContent +=
+          "\n\npostMessage received:\n" +
+          JSON.stringify(
+            {
+              origin: event.origin,
+              data: event.data,
+            },
+            null,
+            2
+          );
+      });
+    </script>
   </body>
 </html>
