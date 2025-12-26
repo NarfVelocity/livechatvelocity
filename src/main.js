@@ -1,4 +1,4 @@
-import { createApp } from "agent-app-sdk/dist/sdk";
+import { createApp } from "agent-app-sdk/packages/agent-app-sdk/dist/index.js";
 
 const output = document.getElementById("output");
 
