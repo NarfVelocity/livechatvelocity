@@ -5,7 +5,7 @@ if (!window.LiveChat) {
   throw new Error("LiveChat SDK missing");
 }
 
-app.textContent = "🟡 Waiting for LiveChat context…";
+app.textContent = "🟡 Initializing widget…";
 
 window.LiveChat.createDetailsWidget()
   .then(widget => {
@@ -18,17 +18,17 @@ window.LiveChat.createDetailsWidget()
 
     const contextEl = document.getElementById("context");
 
-    // Listen for chat updates
-    window.LiveChat.on("chat", chat => {
+    // ✅ Listen via widget instance (correct)
+    widget.on("chat", chat => {
       contextEl.textContent = JSON.stringify(chat, null, 2);
     });
 
-    // Also fetch once immediately
-    window.LiveChat.get("chat").then(chat => {
+    // ✅ Initial fetch
+    widget.get("chat").then(chat => {
       contextEl.textContent = JSON.stringify(chat, null, 2);
     });
   })
   .catch(err => {
-    app.textContent = "❌ Widget init failed";
     console.error(err);
+    app.textContent = "❌ Widget init failed";
   });
