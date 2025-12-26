@@ -1,4 +1,4 @@
-import { createApp } from "@livechat/agent-app-sdk-js";
+import { createApp } from "@textplatform/agent-app-sdk";
 
 const output = document.getElementById("output");
 
