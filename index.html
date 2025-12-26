@@ -1,11 +1,31 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Agent App Test</title>
+    <title>LiveChat Agent App</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont;
+        padding: 10px;
+      }
+      .card {
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 10px;
+        margin-top: 10px;
+      }
+    </style>
   </head>
   <body>
-    <h2>Hello from Agent App</h2>
-    <p>If you see this, the widget works.</p>
+    <h2>✅ Agent App Loaded</h2>
+
+    <div class="card" id="content">
+      Loading static data…
+    </div>
+
+    <script>
+      document.getElementById("content").innerText =
+        "Account: TEST-12345\nName: Demo Account\nStatus: Static JS works";
+    </script>
   </body>
 </html>
