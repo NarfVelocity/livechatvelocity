@@ -4,6 +4,9 @@
   <meta charset="utf-8" />
   <title>LiveChat Account Context</title>
 
+  <!-- Agent App SDK (CDN, no npm) -->
+  <script src="https://unpkg.com/@livechat/agent-app-sdk/dist/index.umd.js"></script>
+
   <style>
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -11,8 +14,8 @@
       font-size: 14px;
     }
     #status {
-      margin-bottom: 8px;
       font-weight: bold;
+      margin-bottom: 8px;
     }
     pre {
       background: #f5f5f5;
@@ -28,57 +31,36 @@
 
 <h3>LiveChat Account Context</h3>
 <div id="status">Initializing…</div>
-<pre id="output">(waiting for data)</pre>
+<pre id="output">(no data yet)</pre>
 
 <script>
   const statusEl = document.getElementById("status");
   const outputEl = document.getElementById("output");
 
-  let initialized = false;
-
-  function log(label, value) {
-    console.log("[LiveChat Widget]", label, value);
-    outputEl.textContent =
-      label + ":\n" + JSON.stringify(value, null, 2);
+  if (!window.LiveChatAgentSDK) {
+    statusEl.textContent = "❌ LiveChat SDK not available";
+    throw new Error("Agent SDK not loaded");
   }
 
-  window.addEventListener("message", (event) => {
-    if (!event.origin.includes("livechatinc.com")) return;
+  const { createDetailsWidget } = window.LiveChatAgentSDK;
 
-    const msg = event.data;
+  createDetailsWidget().then(widget => {
+    statusEl.textContent = "Connected to LiveChat ✅";
 
-    // 1️⃣ Handshake arrives repeatedly — we only react ONCE
-    if (msg?.type === "handshake" && !initialized) {
-      initialized = true;
-      statusEl.textContent = "Connected — requesting chat context";
+    // 🔹 Active chat data
+    widget.on("chat", chat => {
+      statusEl.textContent = "Chat data received ✅";
+      outputEl.textContent =
+        "CHAT:\n" + JSON.stringify(chat, null, 2);
+    });
 
-      event.source.postMessage(
-        {
-          "@@livechat/postmessenger": true,
-          type: "get_chat"
-        },
-        event.origin
-      );
-
-      return;
-    }
-
-    // 2️⃣ Chat data response
-    if (msg?.type === "chat") {
-      statusEl.textContent = "Chat context received ✅";
-      log("Chat", msg.data);
-      return;
-    }
-
-    // 3️⃣ Customer profile response
-    if (msg?.type === "customer_profile") {
+    // 🔹 Customer profile data
+    widget.on("customer_profile", profile => {
       statusEl.textContent = "Customer profile received ✅";
-      log("Customer profile", msg.data);
-      return;
-    }
+      outputEl.textContent =
+        "CUSTOMER PROFILE:\n" + JSON.stringify(profile, null, 2);
+    });
   });
-
-  statusEl.textContent = "Waiting for LiveChat…";
 </script>
 
 </body>
