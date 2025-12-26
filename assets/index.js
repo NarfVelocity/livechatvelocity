@@ -5,13 +5,22 @@ if (!window.LiveChat) {
   throw new Error("LiveChat SDK missing");
 }
 
-app.textContent = "🎉 Agent App Widget loaded successfully";
+app.textContent = "🟡 Loaded outside LiveChat (preview mode)";
 
-window.LiveChat.createDetailsWidget()
+let initialized = false;
+
+// Only try to initialize when embedded in LiveChat
+window.LiveChat.createDetailsWidget({ timeout: 3000 })
   .then(widget => {
+    initialized = true;
     console.log("Widget ready", widget);
+    app.textContent = "🎉 Agent App Widget loaded successfully";
   })
   .catch(err => {
-    console.error(err);
-    app.textContent = "❌ Widget init failed";
+    if (!initialized) {
+      console.info("Not embedded in LiveChat — skipping init");
+    } else {
+      console.error(err);
+      app.textContent = "❌ Widget init failed";
+    }
   });
