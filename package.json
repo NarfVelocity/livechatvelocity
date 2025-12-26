@@ -7,7 +7,7 @@
     "build": "node build.js"
   },
   "dependencies": {
-    "@livechat/agent-app-sdk": "^3.0.0"
+    "@livechat/agent-app-sdk": "^2.6.0"
   },
   "devDependencies": {
     "esbuild": "^0.21.5"
