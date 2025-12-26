@@ -1,13 +1,17 @@
 function boot() {
-  const appRoot = document.getElementById("app");
-  appRoot.textContent = "Initializing…";
+  const root = document.getElementById("app");
+
+  if (!window.LiveChat || !window.LiveChat.createApp) {
+    root.textContent = "LiveChat SDK not available";
+    return;
+  }
 
   window.LiveChat.createApp()
     .then(app => {
-      appRoot.innerHTML = `<pre id="out">Listening…</pre>`;
+      root.innerHTML = `<pre id="out">Listening…</pre>`;
       const out = document.getElementById("out");
 
-      // Initial fetch
+      // Initial read
       app.get("chat").then(chat => {
         out.textContent = JSON.stringify(chat, null, 2);
       });
@@ -18,13 +22,11 @@ function boot() {
       });
     })
     .catch(err => {
-      console.error("App init failed", err);
-      appRoot.textContent = "Init failed";
+      console.error(err);
+      root.textContent = "Init failed";
     });
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", boot);
-} else {
-  boot();
-}
+document.readyState === "loading"
+  ? document.addEventListener("DOMContentLoaded", boot)
+  : boot();
