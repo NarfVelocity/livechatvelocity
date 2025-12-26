@@ -15,31 +15,38 @@
   <body>
     <pre id="out">Loading…</pre>
 
-    <script>
-      const out = document.getElementById("out");
+<script>
+  const out = document.getElementById("out");
 
-      // 1️⃣ Read URL params
-      const params = new URLSearchParams(window.location.search);
-      const data = {
-        location: window.location.href,
-        params: Object.fromEntries(params),
+  function log(label, data) {
+    out.textContent += `\n\n${label}:\n` + JSON.stringify(data, null, 2);
+  }
+
+  window.addEventListener("message", event => {
+    if (event.origin !== "https://my.livechatinc.com") return;
+
+    const msg = event.data;
+    if (!msg || !msg["@@livechat/postmessenger"]) return;
+
+    log("⬇️ received", msg);
+
+    // When we see the first handshake, ask what APIs exist
+    if (msg.type === "handshake") {
+      const capabilitiesRequest = {
+        "@@livechat/postmessenger": true,
+        type: "request",
+        owner: msg.owner,
+        instance: msg.instance,
+        request: {
+          type: "get_capabilities"
+        }
       };
 
-      out.textContent = JSON.stringify(data, null, 2);
+      window.parent.postMessage(capabilitiesRequest, event.origin);
+      log("⬆️ sent get_capabilities", capabilitiesRequest);
+    }
+  });
+</script>
 
-      // 2️⃣ Listen for postMessage
-      window.addEventListener("message", event => {
-        out.textContent +=
-          "\n\npostMessage received:\n" +
-          JSON.stringify(
-            {
-              origin: event.origin,
-              data: event.data,
-            },
-            null,
-            2
-          );
-      });
-    </script>
   </body>
 </html>
