@@ -30,34 +30,20 @@
 
 <script>
   const output = document.getElementById("output");
+  let logs = [];
 
-  function log(data) {
-    output.textContent = JSON.stringify(data, null, 2);
+  function log(msg) {
+    logs.unshift(msg);
+    output.textContent = JSON.stringify(logs.slice(0, 5), null, 2);
   }
 
   window.addEventListener("message", (event) => {
-    if (!event.data || !event.data["@@livechat/postmessenger"]) return;
-
-    const { type } = event.data;
-
-    log(event.data);
-
-    // Step 1: handshake received → request context
-    if (type === "handshake") {
-      event.source.postMessage(
-        {
-          "@@livechat/postmessenger": true,
-          type: "request_context",
-          data: {
-            chat: true,
-            visitor: true,
-            agent: true
-          }
-        },
-        "*"
-      );
-    }
+    const msg = event.data;
+    if (!msg || !msg["@@livechat/postmessenger"]) return;
+    log(msg);
   });
 </script>
+
+    
   </body>
 </html>
