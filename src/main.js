@@ -1,4 +1,4 @@
-import { createApp } from "agent-app-sdk/packages/agent-app-sdk/dist/index.js";
+import * as LiveChat from "@livechat/agent-app-sdk";
 
 const output = document.getElementById("output");
 
@@ -6,13 +6,17 @@ function render(data) {
   output.textContent = JSON.stringify(data, null, 2);
 }
 
-const app = createApp();
+// Create the app
+LiveChat.createApp().then(app => {
+  // Get current chat
+  app.get("chat").then(chat => {
+    render(chat);
+  });
 
-app.get("chat").then(chat => {
-  render(chat);
+  // Listen for chat changes
+  app.on("chat", chat => {
+    render(chat);
+  });
 });
 
-app.on("chat", chat => {
-  render(chat);
-});
 
