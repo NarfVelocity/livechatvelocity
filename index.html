@@ -9,20 +9,21 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       padding: 12px;
       font-size: 14px;
+      background: #fff;
     }
-
+    h3 {
+      margin-top: 0;
+    }
     #status {
       margin-bottom: 10px;
       font-weight: bold;
     }
-
     pre {
       background: #f5f5f5;
-      padding: 10px;
-      max-height: 500px;
+      padding: 8px;
+      max-height: 400px;
       overflow: auto;
       white-space: pre-wrap;
-      font-size: 12px;
       border-radius: 4px;
     }
   </style>
@@ -31,48 +32,76 @@
 <body>
 
   <h3>LiveChat Account Context</h3>
-  <div id="status">Loading SDK…</div>
+  <div id="status">Waiting for LiveChat…</div>
   <pre id="output">(no data yet)</pre>
 
-  <!-- IMPORTANT: module script -->
-  <script type="module">
-    import { createDetailsWidget } from "https://unpkg.com/@livechat/agent-app-sdk@latest/dist/index.esm.js";
-
+  <script>
     const statusEl = document.getElementById("status");
     const outputEl = document.getElementById("output");
+
+    let initialized = false;
 
     function log(label, value) {
       console.log(`[LiveChat Widget] ${label}`, value);
       outputEl.textContent =
-        `${label}:\n${JSON.stringify(value, null, 2)}\n\n` +
-        outputEl.textContent;
+        `${label}:\n${JSON.stringify(value, null, 2)}`;
     }
 
-    statusEl.textContent = "SDK loaded — initializing widget…";
+    window.addEventListener("message", (event) => {
+      // Only accept messages from LiveChat Agent App
+      if (!event.origin.includes("livechatinc.com")) return;
 
-    createDetailsWidget()
-      .then(widget => {
-        statusEl.textContent = "Widget initialized — waiting for data…";
+      const data = event.data;
 
-        widget.on("customer", customer => {
-          statusEl.textContent = "Customer profile received ✅";
-          log("Customer", customer);
-        });
+      // Ignore unrelated messages
+      if (!data || data["@@livechat/postmessenger"] !== true) return;
 
-        widget.on("chat", chat => {
-          statusEl.textContent = "Chat context received ✅";
-          log("Chat", chat);
-        });
+      console.log("[LiveChat Widget] received", data);
 
-        // Debug: log everything
-        widget.on("*", (event, payload) => {
-          log(`Event: ${event}`, payload);
-        });
-      })
-      .catch(err => {
-        statusEl.textContent = "❌ Failed to initialize widget";
-        console.error(err);
-      });
+      // 1️⃣ Handshake
+      if (data.type === "handshake" && !initialized) {
+        initialized = true;
+
+        statusEl.textContent = "Connected to LiveChat ✅";
+
+        // 🔑 REQUIRED: tell LiveChat we are ready
+        event.source.postMessage(
+          {
+            "@@livechat/postmessenger": true,
+            type: "ready"
+          },
+          event.origin
+        );
+
+        // 🔔 Subscribe to data streams
+        event.source.postMessage(
+          {
+            "@@livechat/postmessenger": true,
+            type: "subscribe",
+            subscriptions: ["chat", "customer_profile"]
+          },
+          event.origin
+        );
+
+        return;
+      }
+
+      // 2️⃣ Chat data (pre-chat form, tags, etc.)
+      if (data.type === "chat") {
+        statusEl.textContent = "Chat context received";
+        log("Chat", data.data);
+        return;
+      }
+
+      // 3️⃣ Customer profile (email, name, location)
+      if (data.type === "customer_profile") {
+        statusEl.textContent = "Customer profile received";
+        log("Customer profile", data.data);
+        return;
+      }
+    });
+
+    statusEl.textContent = "Listening for LiveChat messages…";
   </script>
 
 </body>
