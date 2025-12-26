@@ -3,76 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <title>LiveChat Agent App</title>
-    <style>
-      body {
-        font-family: system-ui, -apple-system, BlinkMacSystemFont;
-        padding: 10px;
-        font-size: 13px;
-      }
-      h2 {
-        margin-top: 0;
-      }
-      pre {
-        background: #f6f8fa;
-        padding: 10px;
-        border-radius: 6px;
-        max-height: 400px;
-        overflow: auto;
-        font-size: 12px;
-      }
-    </style>
   </head>
   <body>
-    <h2>✅ Agent App Loaded</h2>
-    <p>Listening for LiveChat context…</p>
+    <h3>LiveChat Agent App</h3>
+    <pre id="output">Loading…</pre>
 
-    <pre id="output">Waiting for messages…</pre>
-
-<script>
-  const output = document.getElementById("output");
-
-  function log(msg) {
-    output.textContent = JSON.stringify(msg, null, 2);
-  }
-
-  function initWhenReady() {
-    if (!window.LiveChatApp) {
-      return false;
-    }
-
-    // LiveChatApp is now available
-    log("LiveChatApp detected");
-
-    // Get current chat
-    window.LiveChatApp.get("chat")
-      .then(chat => {
-        log(chat);
-      })
-      .catch(err => {
-        log({ error: err.message });
-      });
-
-    // Listen for chat changes
-    window.LiveChatApp.on("chat", chat => {
-      log(chat);
-    });
-
-    return true;
-  }
-
-  // Poll until LiveChatApp exists
-  const poll = setInterval(() => {
-    console.log("LiveChatApp =", window.LiveChatApp);
-
-    if (initWhenReady()) {
-      clearInterval(poll); // stop polling once initialized
-    }
-  }, 500);
-</script>
-
-
-
-
-    
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>
