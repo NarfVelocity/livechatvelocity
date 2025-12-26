@@ -28,19 +28,26 @@
 
     <pre id="output">Waiting for messages…</pre>
 
+<script src="https://unpkg.com/@livechat/agent-app-sdk/dist/agent-app-sdk.min.js"></script>
+
 <script>
   const output = document.getElementById("output");
-  let logs = [];
 
-  function log(msg) {
-    logs.unshift(msg);
-    output.textContent = JSON.stringify(logs.slice(0, 5), null, 2);
+  function render(data) {
+    output.textContent = JSON.stringify(data, null, 2);
   }
 
-  window.addEventListener("message", (event) => {
-    const msg = event.data;
-    if (!msg || !msg["@@livechat/postmessenger"]) return;
-    log(msg);
+  // Initialize Agent App SDK
+  const app = new LiveChatApp();
+
+  // Get current chat context
+  app.get("chat").then(chat => {
+    render(chat);
+  });
+
+  // React to chat changes
+  app.on("chat", chat => {
+    render(chat);
   });
 </script>
 
